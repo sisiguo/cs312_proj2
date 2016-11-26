@@ -55,14 +55,18 @@ initBoard = do
     return (initGame rI1 rI2 rT1 rT2)
 
 -- initGame rI1 rI2 rT1 rT2     nitializes the 2048 game with the given tile locations (rI1, rI2) and values (rT1, rT2)
--- initGame :: Int -> Int -> Int -> Int -> Game
-initGame rI1 rI2 rT1 rT2 =  emptyBoard -- game2048 (Start ...builtBoard...)
+initGame :: Int -> Int -> Int -> Int -> Board -- -> Game
+initGame rI1 rI2 rT1 rT2 = finalBoard -- game2048 (Start ...builtBoard...)
     where
         -- emptyBoard is    an empty 4x4 game board
         emptyBoard = replicate boardSize [0 | v <- [1..boardSize]]
+        row1 = floor ((fromIntegral rI1) / (fromIntegral boardSize))
+        row2 = floor ((fromIntegral rI2) / (fromIntegral boardSize))
         i1 = rI1 `mod` boardSize
         i2 = rI2 `mod` boardSize
         -- board = [row | row <- emptyBoard !! i1]
+        tempBoard = addNewTile row1 i1 rT1 emptyBoard
+        finalBoard = addNewTile row2 i2 rT2 tempBoard
 
 -- getRandomValueNotEqualInRange r (x,y)    returns a random number within the range (x,y) not equal to r
 getRandomValueNotEqualInRange :: Int -> (Int,Int) -> IO Int
@@ -71,3 +75,11 @@ getRandomValueNotEqualInRange r (x,y) = do
     if r == rand
         then getRandomValueNotEqualInRange r (x,y)
         else return rand
+
+-- addNewTile row i t board 	returns a new board with value t at index i of given row
+addNewTile :: Int -> Int -> Int -> Board -> Board
+addNewTile row i t board = part1 ++ [part2] ++ part3
+    where
+        part1 = take row board
+        part2 = (take i (board !! row)) ++ [t] ++ (drop (i+1) (board !! row))
+        part3 = drop (row+1) board
