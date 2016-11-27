@@ -8,16 +8,22 @@ import System.Random
 -- ghci
 -- :load 2048
 
+------ Data Structures -------
+
 -- AMove is  either a 'U' for Up, 'D' for Down, 'L' for Left, or 'R' for right to move in a single direction
-data AMove = Up | Down | Left | Right
+data AMove = U | D | L | R
+        deriving(Eq)
 
 -- Action is    an action in the Game
 data Action = Move AMove State  -- do AMove in State
             | Start State       -- start Game with State
 
 -- Result is    the result of performing some Action on the Game
-data Result = EndOfGame Int         -- end of game
+data Result = EndOfGame Int         -- end of game (1 for win, -1 for lose)
             | ContinueGame State    -- continue with new State
+        deriving (Show) -- TODO: keep? Added it so that initGame prints Result to console
+
+------ Types -------
 
 type Game = Action -> Result
 
@@ -30,41 +36,48 @@ type Tile = Int
 -- Board is  a 2D grid of Tiles
 type Board = [[Tile]]
 
+------ Constants -------
+
 -- boardSize    is the size of a game board (number of tiles per row & column)
 boardSize = 4
 
 ------ The 2048 Game -------
 
--- game2048 :: Game
--- game2048 (Move move state)
---     | move == 'U' = ...move tiles & check if any sum to 2048, if so EOG win, else cont.
---     | move == 'D' = ...if no more tiles to move (can merge), EOG lose
---     | move == 'L' = ...
---     | move == 'R' = ...
---     | otherwise = ...
+game2048 :: Game
+-- game2048     drives the 2048 game, takes an Action and outputs its Result
+game2048 (Move aMove state)
+    -- TODO:
+        -- move tiles & check if (1 or more) sum to 2048, if so EOG win, else cont.
+        -- if no more tiles can merge OR no more space to add new tiles, EOG lose
+    | aMove == U = EndOfGame 1
+    | aMove == D = EndOfGame 2
+    | aMove == L = EndOfGame 3
+    | aMove == R = EndOfGame 4
+    | otherwise = EndOfGame (-1)
 
--- game2048 (Start state) = ContinueGame state
+game2048 (Start state) = ContinueGame state
 
--- initBoard    initializes game board with 2 randomly chosen start tile locations and random start values of 2 or 4 for each
--- initBoard :: IO Game
-initBoard = do
+------ Initialization -------
+
+-- initGame    initializes the 2048 game with 2 randomly chosen start tile locations and random start values of 2 or 4 for each
+initGame :: IO Result
+initGame = do
     rI1 <- getRandomValueNotEqualInRange (-1) (0,boardSize)
     rI2 <- getRandomValueNotEqualInRange rI1 (0,boardSize)
     rT1 <- getRandomValueNotEqualInRange 3 (2,4)
     rT2 <- getRandomValueNotEqualInRange 3 (2,4)
-    return (initGame rI1 rI2 rT1 rT2)
+    return (initBoard rI1 rI2 rT1 rT2)
 
--- initGame rI1 rI2 rT1 rT2     nitializes the 2048 game with the given tile locations (rI1, rI2) and values (rT1, rT2)
-initGame :: Int -> Int -> Int -> Int -> Board -- -> Game
-initGame rI1 rI2 rT1 rT2 = finalBoard -- game2048 (Start ...builtBoard...)
+-- initBoard rI1 rI2 rT1 rT2     initializes the game board with the given tile locations (rI1, rI2) and values (rT1, rT2)
+initBoard :: Int -> Int -> Int -> Int -> Result
+initBoard rI1 rI2 rT1 rT2 = game2048 (Start finalBoard)
     where
-        -- emptyBoard is    an empty 4x4 game board
+        -- emptyBoard is    an empty (boardSize x boardSize) game board
         emptyBoard = replicate boardSize [0 | v <- [1..boardSize]]
         row1 = floor ((fromIntegral rI1) / (fromIntegral boardSize))
         row2 = floor ((fromIntegral rI2) / (fromIntegral boardSize))
         i1 = rI1 `mod` boardSize
         i2 = rI2 `mod` boardSize
-        -- board = [row | row <- emptyBoard !! i1]
         tempBoard = addNewTile row1 i1 rT1 emptyBoard
         finalBoard = addNewTile row2 i2 rT2 tempBoard
 
