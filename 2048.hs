@@ -26,7 +26,7 @@ data Result = EndOfGame Int         -- end of game (1 for win, -1 for lose)
 
 ------ Types -------
 
-type Game = Action -> Result
+type Game = Action -> IO Result
 
 -- State is     is the state of the Game
 type State = Board
@@ -46,44 +46,41 @@ boardSize = 4
 
 game2048 :: Game
 -- game2048     drives the 2048 game, takes an Action and outputs its Result
-game2048 (Move aMove state)
+game2048 (Move aMove state) = do
     -- TODO:
         -- move tiles & check if (1 or more) sum to 2048, if so EOG win, else cont.
         -- if no more tiles can merge OR no more space to add new tiles, EOG lose
-    | aMove == U = performMove state (move U state)
-    | aMove == D = performMove state (move D state)
-    | aMove == L = performMove state (move L state)
-    | aMove == R = performMove state (move R state)
-    | otherwise = EndOfGame (-1)
+    if aMove == U then performMove state (move U state)
+    else if aMove == D then performMove state (move D state)
+    else if aMove == L then performMove state (move L state)
+    else if aMove == R then performMove state (move R state)
+    else return (EndOfGame (-1))
         -- where 
         -- 	mergedBoard ... = merge board -- return a tuple (isValid, boardState)
         -- 	newState ... = getNewState ...
 
-game2048 (Start state) = ContinueGame state
+game2048 (Start state) = do 
+    return (ContinueGame state)
 
 -- performMove currentState newState 	returns the result of performing a move
--- performMove :: State -> State -> Result
-performMove currentState newState 
-    | currentState /= newState = if (wonGame newState) then (EndOfGame 1) else (getNextState newState)
-    | otherwise = ContinueGame currentState
+performMove :: State -> State -> IO Result
+performMove currentState newState = do
+    if currentState /= newState then (if (wonGame newState) then (return (EndOfGame 1)) else (getNextState newState))
+    else return (ContinueGame currentState)
 
 -- wonGame state 	returns True if there is a 2048 tile, False otherwise
 wonGame :: State -> Bool
 wonGame state = [] /= filter (== 2048) [e | v <- state, e <- v]
 
--- getNextState state = ... getNewTilePosition
-getNextState state = EndOfGame 1
--- getNextState state = do
---     return (getNewTilePosition state)
-
--- getNewTilePosition state = do
---     pos <- getRandomValueNotEqualInRange (-1) (0,boardSize)
---     newVal <- getRandomValueNotEqualInRange 3 (2,4)
---     let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
---     let i = pos `mod` boardSize
---     let val = ((state !! row) !! i)
---     if (val /= 0) then (getNewTilePosition state) else (addNewTile row i newVal state)
-
+-- getNextState state 	returns the next state
+getNextState :: State -> IO Result
+getNextState state = do
+    pos <- getRandomValueNotEqualInRange (-1) (0,boardSize)
+    newVal <- getRandomValueNotEqualInRange 3 (2,4)
+    let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
+        i = pos `mod` boardSize
+        val = ((state !! row) !! i)
+    if (val /= 0) then (getNextState state) else return (ContinueGame (addNewTile row i newVal state))
 
 ------ References -------
 -- Inspired by Gregor Ulm's 2048 Implementation
@@ -112,20 +109,16 @@ initGame = do
     rI2 <- getRandomValueNotEqualInRange rI1 (0,boardSize)
     rT1 <- getRandomValueNotEqualInRange 3 (2,4)
     rT2 <- getRandomValueNotEqualInRange 3 (2,4)
-    return (initBoard rI1 rI2 rT1 rT2)
-
--- initBoard rI1 rI2 rT1 rT2     initializes the game board with the given tile locations (rI1, rI2) and values (rT1, rT2)
-initBoard :: Int -> Int -> Int -> Int -> Result
-initBoard rI1 rI2 rT1 rT2 = game2048 (Start finalBoard)
-    where
-        -- emptyBoard is    an empty (boardSize x boardSize) game board
-        emptyBoard = replicate boardSize [0 | v <- [1..boardSize]]
+    -- emptyBoard is    an empty (boardSize x boardSize) game board
+    let emptyBoard = replicate boardSize [0 | v <- [1..boardSize]]
         row1 = floor ((fromIntegral rI1) / (fromIntegral boardSize))
         row2 = floor ((fromIntegral rI2) / (fromIntegral boardSize))
         i1 = rI1 `mod` boardSize
         i2 = rI2 `mod` boardSize
         tempBoard = addNewTile row1 i1 rT1 emptyBoard
         finalBoard = addNewTile row2 i2 rT2 tempBoard
+    -- initializes the game board with the given tile locations (rI1, rI2) and values (rT1, rT2)
+    game2048 (Start finalBoard)
 
 -- getRandomValueNotEqualInRange r (x,y)    returns a random number within the range (x,y) not equal to r
 getRandomValueNotEqualInRange :: Int -> (Int,Int) -> IO Int
