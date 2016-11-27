@@ -3,6 +3,7 @@ module Game_2048 where
 
 -- Imports
 import System.Random
+import Data.List
 
 -- To run it, try:
 -- ghci
@@ -49,13 +50,58 @@ game2048 (Move aMove state)
     -- TODO:
         -- move tiles & check if (1 or more) sum to 2048, if so EOG win, else cont.
         -- if no more tiles can merge OR no more space to add new tiles, EOG lose
-    | aMove == U = EndOfGame 1
-    | aMove == D = EndOfGame 2
-    | aMove == L = EndOfGame 3
-    | aMove == R = EndOfGame 4
+    | aMove == U = performMove state (move U state)
+    | aMove == D = performMove state (move D state)
+    | aMove == L = performMove state (move L state)
+    | aMove == R = performMove state (move R state)
     | otherwise = EndOfGame (-1)
+        -- where 
+        -- 	mergedBoard ... = merge board -- return a tuple (isValid, boardState)
+        -- 	newState ... = getNewState ...
 
 game2048 (Start state) = ContinueGame state
+
+-- performMove currentState newState 	returns the result of performing a move
+-- performMove :: State -> State -> Result
+performMove currentState newState 
+    | currentState /= newState = if (wonGame newState) then (EndOfGame 1) else (getNextState newState)
+    | otherwise = ContinueGame currentState
+
+-- wonGame state 	returns True if there is a 2048 tile, False otherwise
+wonGame :: State -> Bool
+wonGame state = [] /= filter (== 2048) [e | v <- state, e <- v]
+
+-- getNextState state = ... getNewTilePosition
+getNextState state = EndOfGame 1
+-- getNextState state = do
+--     return (getNewTilePosition state)
+
+-- getNewTilePosition state = do
+--     pos <- getRandomValueNotEqualInRange (-1) (0,boardSize)
+--     newVal <- getRandomValueNotEqualInRange 3 (2,4)
+--     let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
+--     let i = pos `mod` boardSize
+--     let val = ((state !! row) !! i)
+--     if (val /= 0) then (getNewTilePosition state) else (addNewTile row i newVal state)
+
+
+------ References -------
+-- Inspired by Gregor Ulm's 2048 Implementation
+-- See: http://gregorulm.com/2048-in-90-lines-haskell/
+
+move :: AMove -> State -> State
+move L = map merge
+move R = map (reverse . merge . reverse)
+move U = transpose . move L  . transpose
+move D = transpose . move R . transpose
+
+merge :: [Tile] -> [Tile]
+merge xs = merged ++ padding
+    where padding = replicate (length xs - length merged) 0
+          merged  = combine $ filter (/= 0) xs
+          combine (x:y:xs) | x == y = x * 2 : combine xs
+                           | otherwise = x  : combine (y:xs)
+          combine x = x 
 
 ------ Initialization -------
 
@@ -96,3 +142,4 @@ addNewTile row i t board = part1 ++ [part2] ++ part3
         part1 = take row board
         part2 = (take i (board !! row)) ++ [t] ++ (drop (i+1) (board !! row))
         part3 = drop (row+1) board
+
