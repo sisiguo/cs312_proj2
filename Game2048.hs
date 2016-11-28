@@ -117,7 +117,7 @@ merge xs = merged ++ padding
 ------ Initialization -------
 
 -- initGame    initializes the 2048 game with 2 randomly chosen start tile locations and random start values of 2 or 4 for each
-initGame :: IO Result
+initGame :: IO State
 initGame = do
     rI1 <- getRandomValueNotEqualInRange (-1) (0,boardSize)
     rI2 <- getRandomValueNotEqualInRange rI1 (0,boardSize)
@@ -131,8 +131,7 @@ initGame = do
         i2 = rI2 `mod` boardSize
         tempBoard = addNewTile row1 i1 rT1 emptyBoard
         finalBoard = addNewTile row2 i2 rT2 tempBoard
-    -- initializes the game board with the given tile locations (rI1, rI2) and values (rT1, rT2)
-    game2048 (Start finalBoard)
+    return finalBoard
 
 -- getRandomValueNotEqualInRange r (x,y)    returns a random number within the range (x,y) not equal to r
 getRandomValueNotEqualInRange :: Int -> (Int,Int) -> IO Int
