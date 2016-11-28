@@ -1,5 +1,5 @@
 -- 2048 Game in Haskell
-module Game_2048 where
+module Game2048 where
 
 -- Imports
 import System.Random
