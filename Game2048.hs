@@ -131,8 +131,6 @@ initGame = do
         i2 = rI2 `mod` boardSize
         tempBoard = addNewTile row1 i1 rT1 emptyBoard
         finalBoard = addNewTile row2 i2 rT2 tempBoard
-    -- initializes the game board with the given tile locations (rI1, rI2) and values (rT1, rT2)
-    -- game2048 (Start finalBoard)
     return finalBoard
 
 -- getRandomValueNotEqualInRange r (x,y)    returns a random number within the range (x,y) not equal to r

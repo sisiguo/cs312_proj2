@@ -10,50 +10,40 @@ import System.IO
 
 -- play game2048 initGame
 
---  play :: Game -> IO State -> IO Result
-play game startState  =
-  -- let (wins, losses,ties) = tournament_state in
-   do
-      putStrLn ("Welcome to the 2048 game!")
-      putStrLn ("This is your game board:")
-      ss <- startState
-      putStrLn (show ss)
-      putStrLn ("To move, press 'U' for Up, 'D' for Down, 'L' for Left, and 'R' for Right.")
-      line <- getLine
-      putStrLn("Inputted: " ++ line)
-      -- Put below in a differnt function that will handle the remainder of the game loop
-      -- the loop should handle Input move -> Output resulting board ... until get some sort of EOG (win/lose)?
-      case (read line :: Char) of 'U' -> -- game (Move U ss) returns a IO Result ... new function to pattern match EOG or CG
-                                  'D' -> -- and print the result and continue game loop?
-                                  'L' -> ...
-                                  'R' -> ...
-      -- if (read line :: Int)==0
-      -- then
-      --       person_play game start opponent tournament_state
-      -- else if (read line :: Int)==1
-      --      then
-      --       let ContinueGame state _ = start
-      --          in person_play game (game (Move (opponent game start) state)) opponent tournament_state
-      --       else
-      --          return tournament_state
+play :: Game -> IO State -> IO ()
+play game state  = do
+    putStrLn ("Welcome to the 2048 game!")
+    putStrLn ("This is your game board:")
+    startState <- state
+    putStrLn (show startState)
+    putStrLn ("To move, press 'U' for Up, 'D' for Down, 'L' for Left, and 'R' for Right.")
+    line <- getLine
+    playLoop game line (ContinueGame startState)
 
--- play game2048 initGame
+playLoop :: Game -> [Char] -> Result -> IO ()
+playLoop game move (ContinueGame state) = do
+    case (toLower (move !! 0)) of
+        'u' -> playLoop_helper U
+        'd' -> playLoop_helper D
+        'l' -> playLoop_helper L
+        'r' -> playLoop_helper R
+    where
+        playLoop_helper m = do
+            next <- game (Move m state)
+            case next of
+                (ContinueGame s) -> do
+                    putStrLn (show next)
+                    line <- getLine
+                    playLoop game line next
+                (EndOfGame c) -> if (c == 1)
+                    then putStrLn ("You win!")
+                    else putStrLn ("No more moves. You lost :(") -- TODO: give option to restart?
 
--- person_play :: Game -> Result -> Player -> TournammentState -> IO TournammentState
--- -- opponent has played, the person must now play
--- person_play game (EndOfGame 1) opponent (wins,losses,ties) =
---    do
---       putStrLn "Computer won!"
---       play game (game Start) opponent (wins,losses+1,ties)
--- person_play game (EndOfGame 0) opponent (wins,losses,ties) =
---    do
---       putStrLn "I't a draw"
---       play game (game Start) opponent (wins,losses,ties+1)
--- person_play game (ContinueGame state avail) opponent tournament_state =
---    do
---       putStrLn ("State is "++show state++" choose one of "++show avail)
---       line <- getLine
---       computer_play game (game (Move (read line :: AMove) state)) opponent tournament_state
+-- TODO: function to format board output
+printBoard :: Board -> IO String
+printBoard board = do
+    putStrLn("---------------------") -- Top border
+    putStrLn("---------------------") -- Bottom border
 
 
       
