@@ -47,17 +47,18 @@ boardSize = 4
 game2048 :: Game
 -- game2048     drives the 2048 game, takes an Action and outputs its Result
 game2048 (Move aMove state) = do
-    -- TODO:
-        -- move tiles & check if (1 or more) sum to 2048, if so EOG win, else cont.
-        -- if no more tiles can merge OR no more space to add new tiles, EOG lose
-    if aMove == U then performMove state (move U state)
-    else if aMove == D then performMove state (move D state)
-    else if aMove == L then performMove state (move L state)
-    else if aMove == R then performMove state (move R state)
-    else return (EndOfGame (-1))
-        -- where 
-        -- 	mergedBoard ... = merge board -- return a tuple (isValid, boardState)
-        -- 	newState ... = getNewState ...
+    -- move tiles & check if (1 or more) sum to 2048, if so EOG win, else cont.
+    -- if no more tiles can merge OR no more space to add new tiles, EOG lose
+    let moveUp = move U state
+        moveDown = move D state
+        moveLeft = move L state
+        moveRight = move R state
+    if ((moveUp == state) && (moveDown == state) && (moveLeft == state) && (moveRight == state))
+        then return (EndOfGame (-1))
+        else case aMove of U -> performMove state moveUp
+                           D -> performMove state moveDown
+                           L -> performMove state moveLeft
+                           R -> performMove state moveRight
 
 game2048 (Start state) = do 
     return (ContinueGame state)
@@ -65,7 +66,7 @@ game2048 (Start state) = do
 -- performMove currentState newState 	returns the result of performing a move
 performMove :: State -> State -> IO Result
 performMove currentState newState = do
-    if currentState /= newState then (if (wonGame newState) then (return (EndOfGame 1)) else (getNextState newState))
+    if currentState /= newState then (if (wonGame newState) then (return (EndOfGame 1)) else (getNextState newState 0))
     else return (ContinueGame currentState)
 
 -- wonGame state 	returns True if there is a 2048 tile, False otherwise
@@ -73,14 +74,27 @@ wonGame :: State -> Bool
 wonGame state = [] /= filter (== 2048) [e | v <- state, e <- v]
 
 -- getNextState state 	returns the next state
-getNextState :: State -> IO Result
-getNextState state = do
+getNextState :: State -> Int -> IO Result
+getNextState state tries = do
     pos <- getRandomValueNotEqualInRange (-1) (0,boardSize)
     newVal <- getRandomValueNotEqualInRange 3 (2,4)
-    let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
-        i = pos `mod` boardSize
-        val = ((state !! row) !! i)
-    if (val /= 0) then (getNextState state) else return (ContinueGame (addNewTile row i newVal state))
+    if tries == (boardSize * boardSize)
+        then let zeroIndex = getFirstZeroIndex 0 [e | v <- state, e <- v]
+                 row = floor ((fromIntegral zeroIndex) / (fromIntegral boardSize)) 
+                 i = zeroIndex `mod` boardSize
+                 val = ((state !! row) !! i)
+            in return (ContinueGame (addNewTile row i newVal state))
+        else let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
+                 i = pos `mod` boardSize
+                 val = ((state !! row) !! i)
+            in if (val /= 0) then (getNextState state (tries + 1)) else return (ContinueGame (addNewTile row i newVal state))
+
+-- getFirstZeroIndex n lst  returns the first index where 0 appears in lst
+getFirstZeroIndex :: Int -> [Int] -> Int
+getFirstZeroIndex n [] = n
+getFirstZeroIndex n (x:xs)
+    | x /= 0 = getFirstZeroIndex (n + 1) xs
+    | otherwise = n
 
 ------ References -------
 -- Inspired by Gregor Ulm's 2048 Implementation
