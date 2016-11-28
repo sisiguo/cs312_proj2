@@ -20,6 +20,7 @@ play game startState  =
       putStrLn (show ss)
       putStrLn ("To move, press 'U' for Up, 'D' for Down, 'L' for Left, and 'R' for Right.")
       line <- getLine
+      putStrLn("Inputted: " ++ line)
       -- Put below in a differnt function that will handle the remainder of the game loop
       -- the loop should handle Input move -> Output resulting board ... until get some sort of EOG (win/lose)?
       case (read line :: Char) of 'U' -> -- game (Move U ss) returns a IO Result ... new function to pattern match EOG or CG
