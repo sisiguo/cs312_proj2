@@ -40,7 +40,16 @@ playLoop game move (ContinueGame state) = do
                     then putStrLn ("You win!")
                     else putStrLn ("No more moves. You lost :(") -- TODO: give option to restart?
 
--- TODO: function to format board output
+printBoard :: Board -> IO ()
+printBoard board = do
+    putStrLn("---------------------") -- Top border
+    let test1 = [foldr (\x -> \b -> if x /= 0 
+        then "|"++(foldr (\y -> \z -> " "++z) (show x) [1..(4-(length (show x)))])++b 
+        else "|"++"    "++b) "|" row | row <- board]
+    mapM_ putStrLn test1
+    putStrLn("---------------------") -- Bottom borde
+
+
 
 
 
