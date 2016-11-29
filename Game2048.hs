@@ -1,3 +1,12 @@
+-- Name 1: May Young
+-- CSID: s5l8
+-- Student #: 32950123
+
+-- Name 2: Hui Si (Sisi) Guo
+-- CSID: b7r8
+-- Student #: 35674126
+
+
 -- 2048 Game in Haskell
 module Game2048 where
 
