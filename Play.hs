@@ -28,7 +28,7 @@ play game state  = do
     (startBoard,startNumMoves) <- state
     printBoard startBoard
     putStrLn ("To move, press 'U' for Up, 'D' for Down, 'L' for Left, and 'R' for Right.")
-    putStrLn ("Input your first move:")
+    putStr ("Input your first move: ")
     move <- getLine
     playLoop game move level (ContinueGame (startBoard,startNumMoves))
 
@@ -56,7 +56,7 @@ playLoop game move level (ContinueGame (board,numMoves)) = case (toLower (level 
                             printBoard b
                             putStrLn("The number of moves you've taken: " ++ show n)
 
-                            putStrLn ("Input your next move:")
+                            putStr ("Input your next move: ")
                             line <- getLine
                             playLoop game line level next
                         (EndOfGame c) -> if (c == 1)
@@ -66,11 +66,10 @@ playLoop game move level (ContinueGame (board,numMoves)) = case (toLower (level 
 printBoard :: Board -> IO ()
 printBoard board = do
     putStrLn("---------------------") -- Top border
-    let test1 = [foldr (\x -> \b -> if x /= 0 
+    let rows = [foldr (\x -> \b -> if x /= 0 
         then "|"++(foldr (\y -> \z -> " "++z) (show x) [1..(4-(length (show x)))])++b 
         else "|"++"    "++b) "|" row | row <- board]
-    mapM_ putStrLn test1
-    putStrLn("---------------------") -- Bottom borde
+    mapM_ (\x -> putStr (x ++ "\n" ++ "---------------------\n")) rows
 
 
 
