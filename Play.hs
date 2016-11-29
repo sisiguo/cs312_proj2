@@ -15,15 +15,15 @@ play :: Game -> IO State -> IO ()
 play game state  = do
     putStrLn ("Welcome to the 2048 game!")
     putStrLn ("This is your game board:")
-    startState <- state
-    printBoard startState
+    (startBoard,startNumMoves) <- state
+    printBoard startBoard
     putStrLn ("To move, press 'U' for Up, 'D' for Down, 'L' for Left, and 'R' for Right.")
     putStrLn ("Input your first move:")
     line <- getLine
-    playLoop game line (ContinueGame startState)
+    playLoop game line (ContinueGame (startBoard,startNumMoves))
 
 playLoop :: Game -> [Char] -> Result -> IO ()
-playLoop game move (ContinueGame state) = do
+playLoop game move (ContinueGame (board,numMoves)) = do
     case (toLower (move !! 0)) of
         'u' -> playLoop_helper U
         'd' -> playLoop_helper D
@@ -31,10 +31,11 @@ playLoop game move (ContinueGame state) = do
         'r' -> playLoop_helper R
     where
         playLoop_helper m = do
-            next <- game (Move m state)
+            next <- game (Move m (board,numMoves))
             case next of
-                (ContinueGame s) -> do
-                    printBoard s
+                (ContinueGame (b,n)) -> do
+                    printBoard b
+                    putStrLn("The number of moves you've taken: " ++ show n)
                     putStrLn ("Input your next move:")
                     line <- getLine
                     playLoop game line next

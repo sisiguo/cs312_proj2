@@ -29,7 +29,10 @@ data Result = EndOfGame Int         -- end of game (1 for win, -1 for lose)
 type Game = Action -> IO Result
 
 -- State is     is the state of the Game
-type State = Board
+type State = (Board, NumMoves)
+
+-- NumMoves is  an Int
+type NumMoves = Int
 
 -- Tile is  an Int
 type Tile = Int
@@ -49,45 +52,49 @@ game2048 :: Game
 game2048 (Move aMove state) = do
     -- move tiles & check if (1 or more) sum to 2048, if so EOG win, else cont.
     -- if no more tiles can merge OR no more space to add new tiles, EOG lose
-    let moveUp = move U state
-        moveDown = move D state
-        moveLeft = move L state
-        moveRight = move R state
-    if ((moveUp == state) && (moveDown == state) && (moveLeft == state) && (moveRight == state))
+    let (board,numMoves) = state
+        moveUp = move U board
+        moveDown = move D board
+        moveLeft = move L board
+        moveRight = move R board
+    if ((moveUp == board) && (moveDown == board) && (moveLeft == board) && (moveRight == board))
         then return (EndOfGame (-1))
-        else case aMove of U -> performMove state moveUp
-                           D -> performMove state moveDown
-                           L -> performMove state moveLeft
-                           R -> performMove state moveRight
+        else case aMove of U -> performMove state (moveUp,numMoves)
+                           D -> performMove state (moveDown,numMoves)
+                           L -> performMove state (moveLeft,numMoves)
+                           R -> performMove state (moveRight,numMoves)
 
 game2048 (Start state) = do 
     return (ContinueGame state)
 
 -- performMove currentState newState 	returns the result of performing a move
 performMove :: State -> State -> IO Result
-performMove currentState newState = do
-    if currentState /= newState then (if (wonGame newState) then (return (EndOfGame 1)) else (getNextState newState 0))
-    else return (ContinueGame currentState)
+performMove currState newState = do
+    let (currBoard,currNumMoves) = currState
+        (newBoard,newNumMoves) = newState
+    if currBoard /= newBoard then (if (wonGame newBoard) then (return (EndOfGame 1)) else (getNextState (newBoard,currNumMoves+1) 0))
+    else return (ContinueGame currState)
 
 -- wonGame state 	returns True if there is a 2048 tile, False otherwise
-wonGame :: State -> Bool
-wonGame state = [] /= filter (== 2048) [e | v <- state, e <- v]
+wonGame :: Board -> Bool
+wonGame board = [] /= filter (== 2048) [e | v <- board, e <- v]
 
 -- getNextState state 	returns the next state
 getNextState :: State -> Int -> IO Result
 getNextState state tries = do
     pos <- getRandomValueNotEqualInRange (-1) (0,boardSize)
     newVal <- getRandomValueNotEqualInRange 3 (2,4)
+    let (board,numMoves) = state
     if tries == (boardSize * boardSize)
-        then let zeroIndex = getFirstZeroIndex 0 [e | v <- state, e <- v]
+        then let zeroIndex = getFirstZeroIndex 0 [e | v <- board, e <- v]
                  row = floor ((fromIntegral zeroIndex) / (fromIntegral boardSize)) 
                  i = zeroIndex `mod` boardSize
-                 val = ((state !! row) !! i)
-            in return (ContinueGame (addNewTile row i newVal state))
+                 val = ((board !! row) !! i)
+            in return (ContinueGame ((addNewTile row i newVal board),numMoves))
         else let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
                  i = pos `mod` boardSize
-                 val = ((state !! row) !! i)
-            in if (val /= 0) then (getNextState state (tries + 1)) else return (ContinueGame (addNewTile row i newVal state))
+                 val = ((board !! row) !! i)
+            in if (val /= 0) then (getNextState state (tries + 1)) else return (ContinueGame ((addNewTile row i newVal board),numMoves))
 
 -- getFirstZeroIndex n lst  returns the first index where 0 appears in lst
 getFirstZeroIndex :: Int -> [Int] -> Int
@@ -100,7 +107,7 @@ getFirstZeroIndex n (x:xs)
 -- Inspired by Gregor Ulm's 2048 Implementation
 -- See: http://gregorulm.com/2048-in-90-lines-haskell/
 
-move :: AMove -> State -> State
+move :: AMove -> Board -> Board
 move L = map merge
 move R = map (reverse . merge . reverse)
 move U = transpose . move L  . transpose
@@ -131,7 +138,7 @@ initGame = do
         i2 = rI2 `mod` boardSize
         tempBoard = addNewTile row1 i1 rT1 emptyBoard
         finalBoard = addNewTile row2 i2 rT2 tempBoard
-    return finalBoard
+    return (finalBoard,0)
 
 -- getRandomValueNotEqualInRange r (x,y)    returns a random number within the range (x,y) not equal to r
 getRandomValueNotEqualInRange :: Int -> (Int,Int) -> IO Int
