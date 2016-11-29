@@ -12,7 +12,5 @@ Browser version of 2048: http://2048game.com/
 
 - We will add a number of moves counter.
 
-- We will add a score counter.
-
 # What did we learn from doing this?
 (This should be written after you have done the work.) What is the bottom-line? Is logic programming suitable for (part-of) the task? Make sure you include the evidence for your claims.

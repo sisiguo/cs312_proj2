@@ -12,7 +12,6 @@ import Data.Char
 -- play game2048 initGame
 
 -- TODO: make these more realisitc!
-easyNumMoves = 20
 mediumNumMoves = 10
 hardNumMoves = 5
 
@@ -22,7 +21,7 @@ play game state  = do
     putStrLn ("What level do you want to play at? Input 'E' for Easy, 'M' for Medium, or 'H' for Hard.")
     level <- getLine
     case (toLower (level !! 0)) of
-        'e' -> putStrLn("You get " ++ show easyNumMoves ++ " moves to win the game.")
+        'e' -> putStrLn("You get an unlimited number of moves to win the game.")
         'm' -> putStrLn("You get " ++ show mediumNumMoves ++ " moves to win the game.")
         'h' -> putStrLn("You get " ++ show hardNumMoves ++ " moves to win the game.")
     putStrLn ("This is your game board:")
@@ -35,9 +34,7 @@ play game state  = do
 
 playLoop :: Game -> [Char] -> [Char] -> Result -> IO ()
 playLoop game move level (ContinueGame (board,numMoves)) = case (toLower (level !! 0)) of
-    'e' -> if (numMoves == easyNumMoves)
-            then putStrLn ("You've exceeded the maximum number of moves for the Easy difficulty level. You lose :(")
-            else loop
+    'e' -> loop
     'm' -> if (numMoves == mediumNumMoves)
             then putStrLn ("You've exceeded the maximum number of moves for the Medium difficulty level. You lose :(")
             else loop
