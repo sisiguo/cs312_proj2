@@ -9,12 +9,14 @@ import Game2048
 import System.IO
 import Data.Char
 
+-- Start the game with the below command:
 -- play game2048 initGame
 
 -- TODO: make these more realisitc!
 mediumNumMoves = 10
 hardNumMoves = 5
 
+-- play game state      starts the game
 play :: Game -> IO State -> IO ()
 play game state  = do
     putStrLn ("Welcome to the 2048 game!")
@@ -32,6 +34,7 @@ play game state  = do
     move <- getLine
     playLoop game move level (ContinueGame (startBoard,startNumMoves))
 
+-- playLoop game move level state       allows the player to play until either they win or lose
 playLoop :: Game -> [Char] -> [Char] -> Result -> IO ()
 playLoop game move level (ContinueGame (board,numMoves)) = case (toLower (level !! 0)) of
     'e' -> loop
@@ -63,6 +66,7 @@ playLoop game move level (ContinueGame (board,numMoves)) = case (toLower (level 
                             then putStrLn ("You win!")
                             else putStrLn ("No more moves. You lose :(") -- TODO: give option to restart?
 
+-- printBoard board     prints a visual representation of the board to console 
 printBoard :: Board -> IO ()
 printBoard board = do
     putStrLn("---------------------") -- Top border

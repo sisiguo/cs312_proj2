@@ -26,9 +26,10 @@ data Result = EndOfGame Int         -- end of game (1 for win, -1 for lose)
 
 ------ Types -------
 
+-- Game is      a function that takes in an Action and outputs an IO Result
 type Game = Action -> IO Result
 
--- State is     is the state of the Game
+-- State is     the state of the Game
 type State = (Board, NumMoves)
 
 -- NumMoves is  an Int
@@ -72,8 +73,9 @@ performMove :: State -> State -> IO Result
 performMove currState newState = do
     let (currBoard,currNumMoves) = currState
         (newBoard,newNumMoves) = newState
-    if currBoard /= newBoard then (if (wonGame newBoard) then (return (EndOfGame 1)) else (getNextState (newBoard,currNumMoves+1) 0))
-    else return (ContinueGame currState)
+    if currBoard /= newBoard 
+        then (if (wonGame newBoard) then (return (EndOfGame 1)) else (getNextState (newBoard,currNumMoves+1) 0))
+        else return (ContinueGame currState)
 
 -- wonGame state 	returns True if there is a 2048 tile, False otherwise
 wonGame :: Board -> Bool
@@ -94,7 +96,9 @@ getNextState state tries = do
         else let row = floor ((fromIntegral pos) / (fromIntegral boardSize)) 
                  i = pos `mod` boardSize
                  val = ((board !! row) !! i)
-            in if (val /= 0) then (getNextState state (tries + 1)) else return (ContinueGame ((addNewTile row i newVal board),numMoves))
+            in if (val /= 0) 
+                   then (getNextState state (tries + 1)) 
+                   else return (ContinueGame ((addNewTile row i newVal board),numMoves))
 
 -- getFirstZeroIndex n lst  returns the first index where 0 appears in lst
 getFirstZeroIndex :: Int -> [Int] -> Int
@@ -155,4 +159,3 @@ addNewTile row i t board = part1 ++ [part2] ++ part3
         part1 = take row board
         part2 = (take i (board !! row)) ++ [t] ++ (drop (i+1) (board !! row))
         part3 = drop (row+1) board
-
