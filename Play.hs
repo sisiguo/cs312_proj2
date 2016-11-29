@@ -12,15 +12,14 @@ import Data.Char
 -- Start the game with the below command:
 -- play game2048 initGame
 
--- TODO: make these more realisitc!
-mediumNumMoves = 10
-hardNumMoves = 5
+mediumNumMoves = hardNumMoves * 2
+hardNumMoves = 520
 
 -- play game state      starts the game
 play :: Game -> IO State -> IO ()
 play game state  = do
     putStrLn ("Welcome to the 2048 game!")
-    putStrLn ("What level do you want to play at? Input 'E' for Easy, 'M' for Medium, or 'H' for Hard.")
+    putStr ("What level do you want to play at? Input 'E' for Easy, 'M' for Medium, or 'H' for Hard: ")
     level <- getLine
     case (toLower (level !! 0)) of
         'e' -> putStrLn("You get an unlimited number of moves to win the game.")
@@ -58,13 +57,12 @@ playLoop game move level (ContinueGame (board,numMoves)) = case (toLower (level 
                         (ContinueGame (b,n)) -> do
                             printBoard b
                             putStrLn("The number of moves you've taken: " ++ show n)
-
                             putStr ("Input your next move: ")
                             line <- getLine
                             playLoop game line level next
                         (EndOfGame c) -> if (c == 1)
                             then putStrLn ("You win!")
-                            else putStrLn ("No more moves. You lose :(") -- TODO: give option to restart?
+                            else putStrLn ("No more moves. You lose :(")
 
 -- printBoard board     prints a visual representation of the board to console 
 printBoard :: Board -> IO ()
@@ -74,9 +72,3 @@ printBoard board = do
         then "|"++(foldr (\y -> \z -> " "++z) (show x) [1..(4-(length (show x)))])++b 
         else "|"++"    "++b) "|" row | row <- board]
     mapM_ (\x -> putStr (x ++ "\n" ++ "---------------------\n")) rows
-
-
-
-
-
-      

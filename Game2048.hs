@@ -22,7 +22,7 @@ data Action = Move AMove State  -- do AMove in State
 -- Result is    the result of performing some Action on the Game
 data Result = EndOfGame Int         -- end of game (1 for win, -1 for lose)
             | ContinueGame State    -- continue with new State
-        deriving (Show) -- TODO: keep? Added it so that initGame prints Result to console
+        deriving (Show)
 
 ------ Types -------
 
